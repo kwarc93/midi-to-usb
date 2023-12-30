@@ -57,7 +57,7 @@ void EVENT_USB_Device_ControlRequest(void);
 /** Button mask for the first button on the board. */
 #define BUTTONS_BUTTON1      (1 << 7)
 
-/* Inline Functions: */
+/* Inline Functions */
 static inline void Buttons_Init(void)
 {
 	DDRD  &= ~BUTTONS_BUTTON1;
