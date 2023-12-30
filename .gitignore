@@ -1,4 +1,4 @@
-out/
+obj/
 *.eep, *.elf, *.hex, *.bin, *.sym, *.map, *.lss
 .cproject
 .project
