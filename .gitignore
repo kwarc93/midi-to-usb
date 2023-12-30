@@ -1,4 +1,12 @@
 obj/
-*.eep, *.elf, *.hex, *.bin, *.sym, *.map, *.lss
+
+*.eep
+*.elf
+*.hex
+*.bin
+*.sym
+*.map
+*.lss
+
 .cproject
 .project
