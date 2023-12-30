@@ -18,8 +18,8 @@ F_CPU        = 16000000
 F_USB        = $(F_CPU)
 OPTIMIZATION = s
 TARGET       = main
-SRC          = $(TARGET).c usb_descriptors.c $(LUFA_SRC_USB) $(LUFA_SRC_USBCLASS)
-LUFA_PATH    = ../lufa/LUFA
+SRC          = $(TARGET).cpp usb_descriptors.c usart.c midiXparser/midiXparser.cpp $(LUFA_SRC_USB) $(LUFA_SRC_USBCLASS)
+LUFA_PATH    = lufa/LUFA
 CC_FLAGS     = -DUSE_LUFA_CONFIG_HEADER -Iconfig/
 LD_FLAGS     =
 

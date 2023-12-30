@@ -46,8 +46,13 @@
 #include <LUFA/Drivers/USB/USB.h>
 #include <LUFA/Platform/Platform.h>
 
+#include "usart.h"
+#include "fast_queue.h"
+#include "midiXparser/midiXparser.h"
+
 static void SetupHardware(void);
 static void CheckButtonPress(void);
+static void MIDItoUSB(void);
 
 void EVENT_USB_Device_Connect(void);
 void EVENT_USB_Device_Disconnect(void);
@@ -80,26 +85,21 @@ static inline uint8_t Buttons_GetStatus(void)
  *  passed to all MIDI Class driver functions, so that multiple instances of the same class
  *  within a device can be differentiated from one another.
  */
-USB_ClassInfo_MIDI_Device_t Keyboard_MIDI_Interface =
+USB_ClassInfo_MIDI_Device_t Keyboard_MIDI_Interface = {
 	{
-		.Config =
-			{
-				.StreamingInterfaceNumber = INTERFACE_ID_AudioStream,
-				.DataINEndpoint           =
-					{
-						.Address          = MIDI_STREAM_IN_EPADDR,
-						.Size             = MIDI_STREAM_EPSIZE,
-						.Banks            = 1,
-					},
-				.DataOUTEndpoint          =
-					{
-						.Address          = MIDI_STREAM_OUT_EPADDR,
-						.Size             = MIDI_STREAM_EPSIZE,
-						.Banks            = 1,
-					},
-			},
-	};
+		INTERFACE_ID_AudioStream,
+		{
+			MIDI_STREAM_IN_EPADDR, MIDI_STREAM_EPSIZE, 1,
+		},
+		{
+			MIDI_STREAM_OUT_EPADDR, MIDI_STREAM_EPSIZE, 1,
+		},
+	},
+};
 
+
+static fast_queue<unsigned char, 128> queue;
+static midiXparser midiParser;
 
 /** Main program entry point. This routine contains the overall program flow, including initial
  *  setup of all components and the main program loop.
@@ -107,12 +107,14 @@ USB_ClassInfo_MIDI_Device_t Keyboard_MIDI_Interface =
 int main(void)
 {
 	SetupHardware();
-
 	GlobalInterruptEnable();
+
+	midiParser.setMidiMsgFilter( midiXparser::channelVoiceMsgTypeMsk );
 
 	for (;;)
 	{
 		CheckButtonPress();
+		MIDItoUSB();
 
 		MIDI_EventPacket_t ReceivedMIDIEvent;
 		while (MIDI_Device_ReceiveEventPacket(&Keyboard_MIDI_Interface, &ReceivedMIDIEvent))
@@ -136,6 +138,7 @@ static void SetupHardware(void)
 	clock_prescale_set(clock_div_1);
 
 	/* Hardware Initialization */
+	USART_Init(31250);
 	Buttons_Init();
 	USB_Init();
 }
@@ -201,6 +204,28 @@ static void CheckButtonPress(void)
 	}
 }
 
+static void MIDItoUSB(void)
+{
+	unsigned char c;
+	if (!queue.pop(c))
+		return;
+
+	if (!midiParser.parse(c))
+		return;
+
+	MIDI_EventPacket_t MIDIEvent
+	{
+		MIDI_EVENT(0, midiParser.getMidiMsg()[0]),
+
+		midiParser.getMidiMsg()[0],
+		midiParser.getMidiMsg()[1],
+		midiParser.getMidiMsg()[2],
+	};
+
+	MIDI_Device_SendEventPacket(&Keyboard_MIDI_Interface, &MIDIEvent);
+	MIDI_Device_Flush(&Keyboard_MIDI_Interface);
+}
+
 /** Event handler for the library USB Connection event. */
 void EVENT_USB_Device_Connect(void)
 {
@@ -223,5 +248,11 @@ void EVENT_USB_Device_ConfigurationChanged(void)
 void EVENT_USB_Device_ControlRequest(void)
 {
 	MIDI_Device_ProcessControlRequest(&Keyboard_MIDI_Interface);
+}
+
+ISR(USART_RXC_vect)
+{
+	const unsigned char c = USART_GetCharFromISR();
+	queue.push(c);
 }
 
