@@ -8,19 +8,17 @@
 
 void USART_Init(unsigned long int baud)
 {
-	unsigned int ubrr = (F_CPU + (16 * baud) / 2) / (16 * baud) - 1;
+	unsigned int ubrr = F_CPU / (16UL * baud) - 1;
 
 	/* Set baud rate */
-	UBRR1 = (unsigned char)(ubrr >> 8);
-	UBRR1 = (unsigned char)ubrr;
+	UBRR1H = (unsigned char)(ubrr >> 8);
+	UBRR1L = (unsigned char)ubrr;
 	/* Double usart speed */
-	UCSR1A |= (1 << U2X1);
-	/* Enable RX interrupt */
-	UCSR1B |= (1 << RXCIE1);
-	/* Enable receiver */
-	UCSR1B = (1 << RXEN1);
+//	UCSR1A |= (1 << U2X1);
+	/* Enable RX interrupt & receiver */
+	UCSR1B |= (1 << RXCIE1) | (1 << RXEN1);
 	/* Set frame format: 8data, 1stop bit */
-	UCSR1C = (3 << UCSZ10);
+	UCSR1C |= (3 << UCSZ10);
 }
 
 void USART_TransmitChar(unsigned char data)

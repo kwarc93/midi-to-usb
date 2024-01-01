@@ -41,11 +41,10 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "usb_descriptors.h"
-
 #include <LUFA/Drivers/USB/USB.h>
 #include <LUFA/Platform/Platform.h>
 
+#include "usb_descriptors.h"
 #include "usart.h"
 #include "fast_queue.h"
 #include "midiXparser/midiXparser.h"
@@ -250,7 +249,7 @@ void EVENT_USB_Device_ControlRequest(void)
 	MIDI_Device_ProcessControlRequest(&Keyboard_MIDI_Interface);
 }
 
-ISR(USART_RXC_vect)
+ISR(USART1_RX_vect)
 {
 	const unsigned char c = USART_GetCharFromISR();
 	queue.push(c);
