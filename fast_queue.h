@@ -11,7 +11,7 @@
 
 
 /* Single producer - single consumer queue with no locks. N must be power of 2. */
-template<typename T, size_t N>
+template<typename T, uint8_t N>
 class fast_queue
 {
 public:
@@ -23,12 +23,12 @@ public:
         return this->read_idx == this->write_idx;
     }
 
-    constexpr size_t size() const
+    constexpr uint8_t size() const
     {
         return this->write_idx - this->read_idx;
     }
 
-    constexpr size_t max_size() const
+    constexpr uint8_t max_size() const
     {
     	/* When read_idx == write_idx queue is empty, so storage is one less than N */
         return N - 1;
@@ -55,9 +55,9 @@ public:
     }
 
 private:
-    size_t read_idx, write_idx;
+    uint8_t read_idx, write_idx;
     T elements[N];
-    static constexpr size_t wrap_mask = N - 1;
+    static constexpr uint8_t wrap_mask = N - 1;
 
     static_assert(N && ((N & (N - 1)) == 0), "N should be power of 2");
 };
