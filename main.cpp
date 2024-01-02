@@ -33,7 +33,7 @@ static USB_ClassInfo_MIDI_Device_t midi_keyb_interface {
 	}
 };
 
-static fast_queue<uint8_t, 32> uart_queue;
+static fast_queue<uint8_t, 64> uart_queue;
 static midiXparser midiParser;
 
 int main(void)

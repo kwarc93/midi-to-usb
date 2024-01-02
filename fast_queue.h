@@ -10,7 +10,7 @@
 #define FAST_QUEUE_H_
 
 
-/* Single Producer - Single Consumer queue with no locks */
+/* Single producer - single consumer queue with no locks. N must be power of 2. */
 template<typename T, size_t N>
 class fast_queue
 {
@@ -30,17 +30,17 @@ public:
 
     constexpr size_t max_size() const
     {
-        return N;
+    	/* When read_idx == write_idx queue is empty, so storage is one less than N */
+        return N - 1;
     }
 
     bool push(const T &element)
     {
-        if (this->size() == N)
+        if (this->size() == this->max_size())
             return false;
 
         this->elements[this->write_idx++] = element;
-        if (this->write_idx == (N + 1))
-        	this->write_idx = 0;
+        this->write_idx &= this->wrap_mask;
         return true;
     }
 
@@ -50,15 +50,16 @@ public:
             return false;
 
         element = this->elements[this->read_idx++];
-        if (this->read_idx == (N + 1))
-        	this->read_idx = 0;
+        this->read_idx &= this->wrap_mask;
         return true;
     }
 
 private:
-    /* When read_idx == write_idx queue is empty, so storage should be +1 size */
     size_t read_idx, write_idx;
-    T elements[N + 1];
+    T elements[N];
+    static constexpr size_t wrap_mask = N - 1;
+
+    static_assert(N && ((N & (N - 1)) == 0), "N should be power of 2");
 };
 
 
