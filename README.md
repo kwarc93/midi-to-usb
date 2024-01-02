@@ -1,14 +1,11 @@
 # MIDI to USB adapter
 
-MIDI to USB adapter running on AT90USB162 microcontroller
+Simple MIDI (UART) to USB adapter running on AT90USB162 microcontroller
 
 ## Features:
 
-TODO
-
-## Overview
-
-TODO
+- build upon LUFA USB framework
+- only channel voice messages are supported
 
 ## Dependencies
 
